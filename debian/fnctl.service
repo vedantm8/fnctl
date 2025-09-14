@@ -1,0 +1,15 @@
+[Unit]
+Description=fnctl self-hosted function server
+After=network.target
+
+[Service]
+Type=simple
+Environment=FNCTL_HOME=/var/lib/fnctl
+ExecStart=/usr/bin/fnctl serve --host 0.0.0.0 --port 8080
+Restart=on-failure
+User=fnctl
+Group=fnctl
+
+[Install]
+WantedBy=multi-user.target
+

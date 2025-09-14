@@ -1,0 +1,6 @@
+{
+  "entrypoint": "main:handler",
+  "language": "python",
+  "logging": true,
+  "name": "hello"
+}

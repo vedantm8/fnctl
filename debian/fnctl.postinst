@@ -1,0 +1,16 @@
+#!/bin/sh
+set -e
+
+case "$1" in
+  configure)
+    if ! id fnctl >/dev/null 2>&1; then
+      adduser --system --group --home /var/lib/fnctl --no-create-home fnctl || true
+    fi
+    install -d -o fnctl -g fnctl -m 755 /var/lib/fnctl
+    install -d -o fnctl -g fnctl -m 755 /var/lib/fnctl/functions
+    install -d -o fnctl -g fnctl -m 755 /var/lib/fnctl/logs
+    ;;
+esac
+
+exit 0
+
