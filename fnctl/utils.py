@@ -4,12 +4,25 @@ from pathlib import Path
 
 
 FNCTL_HOME_ENV = "FNCTL_HOME"
+SYSTEM_CONFIG_PATH = Path("/etc/fnctl/config.json")
 
 
 def get_home() -> Path:
+    # 1) explicit environment wins
     home = os.environ.get(FNCTL_HOME_ENV)
     if home:
         return Path(home).expanduser()
+    # 2) system-wide config (installed package path)
+    try:
+        if SYSTEM_CONFIG_PATH.exists():
+            cfg = read_json(SYSTEM_CONFIG_PATH)
+            sys_home = cfg.get("home")
+            if sys_home:
+                return Path(str(sys_home)).expanduser()
+    except Exception:
+        # fall through to per-user default if config unreadable
+        pass
+    # 3) per-user default
     return Path.home() / ".fnctl"
 
 
@@ -50,4 +63,3 @@ def write_json(path: Path, data: dict) -> None:
 
 def log_path(name: str) -> Path:
     return logs_dir() / f"{name}.log"
-

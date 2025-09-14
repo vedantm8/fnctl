@@ -96,7 +96,9 @@ sudo systemctl enable --now fnctl.service
 # default: listens on 0.0.0.0:8080 and stores data in /var/lib/fnctl
 ```
 
-The service runs under a dedicated `fnctl` user (created by the package) and uses `/var/lib/fnctl` as `FNCTL_HOME`.
+The service runs under a dedicated `fnctl` user (created by the package).
+The installed package sets a system default at `/etc/fnctl/config.json` and
+adds `/etc/profile.d/fnctl.sh`, so `fnctl` commands default to `/var/lib/fnctl`.
 
 Tip: When running locally without installing, you can override the data dir with `FNCTL_HOME`:
 

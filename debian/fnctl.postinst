@@ -4,13 +4,26 @@ set -e
 case "$1" in
   configure)
     if ! id fnctl >/dev/null 2>&1; then
-      adduser --system --group --home /var/lib/fnctl --no-create-home fnctl || true
+      adduser --system --group --home /var/lib/fnctl --shell /usr/sbin/nologin fnctl || true
     fi
     install -d -o fnctl -g fnctl -m 755 /var/lib/fnctl
     install -d -o fnctl -g fnctl -m 755 /var/lib/fnctl/functions
     install -d -o fnctl -g fnctl -m 755 /var/lib/fnctl/logs
+
+    # System-wide default config so CLI points to /var/lib/fnctl by default
+    install -d -m 755 /etc/fnctl
+    cat > /etc/fnctl/config.json <<'EOF'
+{
+  "home": "/var/lib/fnctl"
+}
+EOF
+
+    # Convenience for interactive shells
+    cat > /etc/profile.d/fnctl.sh <<'EOF'
+export FNCTL_HOME=/var/lib/fnctl
+EOF
+    chmod 644 /etc/profile.d/fnctl.sh
     ;;
 esac
 
 exit 0
-
