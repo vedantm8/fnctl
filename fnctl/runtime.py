@@ -40,7 +40,14 @@ def _import_python_handler(base: Path, entrypoint: str) -> Callable:
     module_file, _, func_name = entrypoint.partition(":")
     if not func_name:
         raise RuntimeError("Invalid entrypoint; expected 'module.py:handler'")
-    file_path = base / module_file
+    candidate = base / module_file
+    if candidate.suffix != ".py" and not candidate.exists():
+        candidate_py = candidate.with_suffix(".py")
+        if candidate_py.exists():
+            candidate = candidate_py
+    if not candidate.exists():
+        raise RuntimeError(f"Entrypoint module not found: {candidate}")
+    file_path = candidate
     mtime = file_path.stat().st_mtime
     cache_key = str(file_path)
     with _PY_CACHE_LOCK:
@@ -126,4 +133,3 @@ def write_log(name: str, record: Dict[str, Any]) -> None:
     with path.open("a", encoding="utf-8") as f:
         f.write(json.dumps(record, sort_keys=True))
         f.write("\n")
-

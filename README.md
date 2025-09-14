@@ -132,6 +132,20 @@ pytest -q
 - Tests use a temporary `FNCTL_HOME` so they do not touch your real `~/.fnctl`.
 - The suite covers creating, listing, invoking, and destroying functions (with and without purging logs).
 
+- Show `print()` output during tests (optional):
+
+```bash
+pytest -s -q            # disable capture to see prints live
+# or
+pytest -q --capture=tee-sys  # show prints while also capturing
+```
+
+- During Debian package build, you can surface prints in the build log by overriding the test args:
+
+```bash
+PYBUILD_TEST_ARGS="pytest -s -q" dpkg-buildpackage -us -uc -b
+```
+
 ### Hosting an APT repository (so users can `apt install fnctl`)
 
 To allow `apt install fnctl` directly, host a signed APT repo and publish releases.
