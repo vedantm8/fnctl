@@ -147,7 +147,7 @@ def cmd_disable_logs(args: argparse.Namespace) -> int:
 def cmd_serve(args: argparse.Namespace) -> int:
     host = args.host
     port = args.port
-    run_server(host=host, port=port)
+    run_server(host=host, port=port, quiet=getattr(args, "quiet", False))
     return 0
 
 
@@ -174,6 +174,7 @@ def build_parser() -> argparse.ArgumentParser:
     s = sub.add_parser("serve", help="Run the HTTP server")
     s.add_argument("--host", default="127.0.0.1")
     s.add_argument("--port", type=int, default=8080)
+    s.add_argument("--quiet", action="store_true", help="Suppress HTTP access logs")
     s.set_defaults(func=cmd_serve)
 
     g = sub.add_parser("logs", help="Show or follow function logs")
@@ -201,4 +202,3 @@ def main(argv: Optional[list] = None) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

@@ -12,6 +12,12 @@ from .utils import functions_dir
 class FnctlHandler(BaseHTTPRequestHandler):
     server_version = "fnctl/0.1"
 
+    def log_message(self, format: str, *args) -> None:
+        # Suppress access logs when server.quiet is True
+        if getattr(self.server, "quiet", False):  # type: ignore[attr-defined]
+            return
+        return super().log_message(format, *args)
+
     def _read_body(self) -> bytes:
         length = int(self.headers.get("Content-Length", 0))
         if length:
@@ -85,8 +91,10 @@ class FnctlHandler(BaseHTTPRequestHandler):
         self._handle()
 
 
-def serve(host: str = "127.0.0.1", port: int = 8080):
+def serve(host: str = "127.0.0.1", port: int = 8080, quiet: bool = False):
     httpd = HTTPServer((host, port), FnctlHandler)
+    # Attach a flag so the handler can decide whether to log access lines
+    setattr(httpd, "quiet", bool(quiet))
     print(f"fnctl server listening on http://{host}:{port}")
     try:
         httpd.serve_forever()
@@ -94,4 +102,3 @@ def serve(host: str = "127.0.0.1", port: int = 8080):
         pass
     finally:
         httpd.server_close()
-
