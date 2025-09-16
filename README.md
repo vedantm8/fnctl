@@ -13,6 +13,24 @@ No heavy dependencies; built on Python standard library. Designed to support Pyt
 - Python runtime (module file + handler), plus generic `exec` runtime (JSON over stdin/stdout)
 - Minimal and extensible design; no external deps
 
+## Install
+
+- Quick install:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/vedantm8/fnctl/master/scripts/install.sh | bash
+```
+
+The script installs with `pipx` when available (recommended for Python CLIs),
+falling back to `pip install --user` if `pipx` is not found. It pulls the
+source tarball directly from GitHub (no PyPI needed yet). If using the pip
+fallback and the command isn’t found, ensure your PATH includes the Python
+user bin directory (typically `~/.local/bin`).
+
+Manual alternatives:
+- `pipx install fnctl`
+- `python3 -m pip install --user fnctl`
+
 ## Quickstart
 
 - Start the server:
