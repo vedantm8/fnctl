@@ -6,7 +6,7 @@ readme = (this_dir / "README.md").read_text(encoding="utf-8") if (this_dir / "RE
 
 setup(
     name="fnctl",
-    version="0.1.0",
+    version="0.1.1",
     description="Self-hosted functions (Lambda-like) runtime and CLI",
     long_description=readme,
     long_description_content_type="text/markdown",
