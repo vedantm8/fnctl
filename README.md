@@ -12,6 +12,14 @@ Use the package manager [pip](https://pip.pypa.io/en/stable/) to install fnctl.
 pip install fnctl
 ```
 
+### pipx (isolated CLI install)
+
+pipx installs CLI tools into dedicated virtual environments and exposes their entry points on your PATH.
+
+```bash
+pipx upgrade fnctl
+```
+
 ## Usage
 
 ### Create a function
@@ -23,8 +31,11 @@ fnctl --version
 fnctl -h # Shows list of commands
 fnctl serve -h # Show arguments for serve function
 
-# Start the server
-fnctl serve --quiet --host 127.0.0.1 --port 8080 &
+# Start the server (foreground, Ctrl+C to stop)
+fnctl serve --host 127.0.0.1 --port 8080
+
+# Or start in background (returns to shell)
+fnctl serve --host 127.0.0.1 --port 8080 &
 
 # Create a Python function
 fnctl create hello --lang python
@@ -41,6 +52,80 @@ fnctl destroy hello
 
 # Add --purge-logs to remove its logs
 fnctl destroy hello --purge-logs
+```
+
+### Start/Restart without server logs
+
+Silence all HTTP server output while keeping per‑function logs untouched.
+
+- Start (no logs):
+
+```bash
+# With PID file
+fnctl serve --quiet --host 127.0.0.1 --port 8080 >/dev/null 2>&1 & echo $! >/tmp/fnctl.pid
+
+# Without PID file
+fnctl serve --quiet --host 127.0.0.1 --port 8080 >/dev/null 2>&1 &
+```
+
+- Restart (no logs):
+
+```bash
+# With PID file
+([ -f /tmp/fnctl.pid ] && kill "$(cat /tmp/fnctl.pid)" || true; \
+ fnctl serve --quiet --host 127.0.0.1 --port 8080 >/dev/null 2>&1 & echo $! >/tmp/fnctl.pid)
+
+# Without PID file
+(pkill -f 'fnctl serve' || true) && fnctl serve --quiet --host 127.0.0.1 --port 8080 >/dev/null 2>&1 &
+```
+
+- Stop:
+
+```bash
+# With PID file
+kill "$(cat /tmp/fnctl.pid)" || true; rm -f /tmp/fnctl.pid
+
+# Without PID file
+pkill -f 'fnctl serve' || true
+```
+
+Notes:
+- `--quiet` suppresses HTTP access logs; redirection to `/dev/null` hides the startup line and any stderr.
+- Function logs are separate and can be toggled per function:
+  - `fnctl disable-logs <name>` / `fnctl enable-logs <name>`
+
+### Start/Restart with server logs
+
+If you want to see HTTP access logs in your terminal, do not use `--quiet` and do not redirect output to `/dev/null`.
+
+- Start (with logs):
+
+```bash
+# Foreground (prints logs; Ctrl+C to stop)
+fnctl serve --host 127.0.0.1 --port 8080
+
+# Background (prints logs in current terminal session)
+fnctl serve --host 127.0.0.1 --port 8080 & echo $! >/tmp/fnctl.pid
+
+# Foreground, save logs to file (and print)
+fnctl serve --host 127.0.0.1 --port 8080 2>&1 | tee -a ~/fnctl.http.log
+
+# Background, append logs to file and save PID
+fnctl serve --host 127.0.0.1 --port 8080 >>~/fnctl.http.log 2>&1 & echo $! >/tmp/fnctl.pid
+```
+
+- Restart (with logs):
+
+```bash
+# With PID file
+([ -f /tmp/fnctl.pid ] && kill "$(cat /tmp/fnctl.pid)" || true; \
+ fnctl serve --host 127.0.0.1 --port 8080 >>~/fnctl.http.log 2>&1 & echo $! >/tmp/fnctl.pid)
+
+# Without PID file
+(pkill -f 'fnctl serve' || true) && fnctl serve --host 127.0.0.1 --port 8080 >>~/fnctl.http.log 2>&1 &
+
+# Follow the log
+tail -f ~/fnctl.http.log
 ```
 
 ### Function location
