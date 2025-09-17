@@ -1,0 +1,22 @@
+[distutils]
+index-servers =
+    pypi
+    testpypi
+
+[pypi]
+repository = https://upload.pypi.org/legacy/
+username = __token__
+# Avoid checking real secrets into git; this is an example.
+# You can either paste your token here, or better, leave it blank
+# and use your system keyring or environment variables.
+# password = pypi-REPLACE_WITH_YOUR_PYPI_TOKEN
+
+[testpypi]
+repository = https://test.pypi.org/legacy/
+username = __token__
+# password = pypi-REPLACE_WITH_YOUR_TESTPYPI_TOKEN
+
+# Usage examples:
+#   python3 -m twine upload --repository pypi dist/*
+#   python3 -m twine upload --repository testpypi dist/*
+
