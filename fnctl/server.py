@@ -10,7 +10,7 @@ from .utils import functions_dir
 
 
 class FnctlHandler(BaseHTTPRequestHandler):
-    server_version = "fnctl/0.1"
+    server_version = "fnctl/0.1.2"
 
     def log_message(self, format: str, *args) -> None:
         # Suppress access logs when server.quiet is True
