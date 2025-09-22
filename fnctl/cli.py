@@ -88,9 +88,15 @@ def cmd_list(_: argparse.Namespace) -> int:
     if not rows:
         print("No functions found. Create one with: fnctl create <name>")
         return 0
-    print("NAME\tLANG\tLOGGING")
-    for name, lang, logging in rows:
-        print(f"{name}\t{lang}\t{str(logging).lower()}")
+    rows = [(name, lang, "true" if logging else "false") for name, lang, logging in rows]
+    headers = ("NAME", "LANG", "LOGGING")
+    widths = [max(len(headers[i]), max(len(row[i]) for row in rows)) for i in range(len(headers))]
+    def fmt_row(row) -> str:
+        return "  ".join(cell.ljust(widths[i]) for i, cell in enumerate(row))
+
+    print(fmt_row(headers))
+    for row in rows:
+        print(fmt_row(row))
     return 0
 
 
