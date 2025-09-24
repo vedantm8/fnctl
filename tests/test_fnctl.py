@@ -1,12 +1,21 @@
 import json
 import os
+import socket
+import subprocess
+import sys
 import tempfile
+import time
 from pathlib import Path
 from contextlib import contextmanager
+from urllib.request import urlopen
 
 import fnctl.cli as cli
 from fnctl.runtime import load_spec, invoke_function, write_log
 from fnctl.utils import fn_dir, log_path
+
+
+ROOT = Path(__file__).resolve().parents[1]
+HOST = "127.0.0.1"
 
 
 def run_cli(args):
@@ -30,6 +39,25 @@ def set_env(env: dict):
                 del os.environ[k]
             elif v is not None:
                 os.environ[k] = v
+
+
+def _free_port() -> int:
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.bind((HOST, 0))
+        return s.getsockname()[1]
+
+
+def _wait_for_port(port: int, timeout: float = 5.0) -> None:
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+            sock.settimeout(0.5)
+            try:
+                sock.connect((HOST, port))
+                return
+            except OSError:
+                time.sleep(0.1)
+    raise RuntimeError(f"Server did not start on port {port}")
 
 
 def test_create_list_invoke_python_function():
@@ -105,3 +133,47 @@ def test_destroy_removes_function_and_optional_logs():
             assert not fn_dir("hello").exists()
             print(f"[destroy --purge-logs] logs removed: exists={log_path('hello').exists()}")
             assert not log_path("hello").exists()
+
+
+def test_serve_command_handles_http_request():
+    with tempfile.TemporaryDirectory() as td:
+        home = Path(td)
+        with set_env({"FNCTL_HOME": str(home)}):
+            rc = run_cli(["create", "hello", "--lang", "python"])
+            assert rc == 0
+
+            port = _free_port()
+            env = os.environ.copy()
+            cmd = [
+                sys.executable,
+                "-m",
+                "fnctl.cli",
+                "serve",
+                "--host",
+                HOST,
+                "--port",
+                str(port),
+                "--quiet",
+            ]
+            proc = subprocess.Popen(
+                cmd,
+                cwd=str(ROOT),
+                env=env,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+            )
+            try:
+                _wait_for_port(port)
+                with urlopen(f"http://{HOST}:{port}/fn/hello?name=test", timeout=5) as response:
+                    body = response.read().decode("utf-8")
+                data = json.loads(body)
+                assert data["hello"] == "test"
+                assert data["from"] == "hello"
+            finally:
+                proc.terminate()
+                try:
+                    proc.communicate(timeout=5)
+                except subprocess.TimeoutExpired:
+                    proc.kill()
+                    proc.communicate(timeout=5)
