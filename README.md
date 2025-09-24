@@ -166,6 +166,21 @@ fnctl serve --quiet --host 127.0.0.1 --port 8080 &
 ```
 
 
+## Releasing
+
+Use the interactive helper to prepare and publish a release:
+
+```bash
+python scripts/release.py
+```
+
+The script will prompt for the release type (major, minor, patch, or custom),
+update the version in `setup.py`, `fnctl/__init__.py`, and `fnctl/server.py`,
+run `pytest -q`, and invoke `scripts/publish.sh` to upload to PyPI or TestPyPI.
+It also checks whether you're using `~/.pypirc` or environment credentials
+before attempting to upload.
+
+
 ## Contributing
 
 ### Local Installation
